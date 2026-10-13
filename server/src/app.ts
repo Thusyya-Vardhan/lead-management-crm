@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
+import leadRoutes from "./routes/leadRoutes.js";
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/leads', leadRoutes);
 
 app.use(errorHandler);
 

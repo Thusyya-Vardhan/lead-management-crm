@@ -6,7 +6,7 @@ import { authorize } from '../middlewares/rbacMiddleware.js';
 const router = Router();
 
 router.post('/login', login);
-router.get('/me', authenticate, getMe);
+router.get('/me', authenticate, getMe); // To keep the user logged in incase of page refresh
 
 // RBAC Verification Test Route
 router.get('/test/admin-only', authenticate, authorize('ADMIN'), (req, res) => {
