@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
 import leadRoutes from "./routes/leadRoutes.js";
+import deletionRequestRoutes from "./routes/deletionRequestRoutes.js";
+import employeeRoutes from "./routes/employeeRoutes.js";
 
 const app = express();
 
@@ -26,6 +28,8 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadRoutes);
+app.use('/api/deletion-requests', deletionRequestRoutes);
+app.use('/api/employees', employeeRoutes);
 
 app.use(errorHandler);
 

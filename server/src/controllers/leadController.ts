@@ -137,6 +137,15 @@ export const updateLead = async (req: Request, res: Response, next: NextFunction
       }
     }
 
+    // OCC check: If client supplied __v and it doesn't match current DB version, return 409
+    if (req.body.__v !== undefined && Number(req.body.__v) !== lead.__v) {
+      res.status(409).json({
+        success: false,
+        error: { message: 'This lead was modified by another user. Please refresh and review latest changes.' },
+      });
+      return;
+    }
+
     // Apply allowed updates
     const { name, email, phone, company, status, notes, assignedTo } = req.body;
     if (name !== undefined) lead.name = name;
