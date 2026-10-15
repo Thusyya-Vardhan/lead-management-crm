@@ -1,6 +1,6 @@
-# Mini CRM — Lead Management System
+# Sales Lead Management CRM
 
-A focused, high-integrity Lead Management CRM designed for small business sales teams. Built with a decoupled **React (Vite + TypeScript)** frontend and **Node.js / Express (TypeScript)** backend backed by **MongoDB (Mongoose ODM)**.
+A focused, high-integrity sales lead tracking and pipeline management system built with a decoupled **React (Vite + TypeScript)** frontend and **Node.js / Express (TypeScript)** backend backed by **MongoDB (Mongoose ODM)**.
 
 ---
 
