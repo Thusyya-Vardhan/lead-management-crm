@@ -6,19 +6,22 @@ A focused, high-integrity Lead Management CRM designed for small business sales 
 
 ## 🌟 Key Features
 
+* **JWT Authentication & Secure Session Management**:
+  * Stateless authentication using signed JSON Web Tokens (`Authorization: Bearer <token>`).
+  * Passwords hashed using `bcrypt` with 10 salt rounds before storage.
+  * Automatic session restoration and token validation on page reload via `GET /api/auth/me`.
 * **Two-Tier Role-Based Access Control (RBAC)**:
   * **ADMIN**: Full pipeline oversight, creates leads, assigns owners, provisions employee accounts, directly deletes records, and approves/rejects deletion requests.
-  * **EMPLOYEE**: Restricted horizontal visibility (only sees and updates leads assigned to them), cannot reassign leads, and must submit deletion requests for Admin approval.
-* **Optimistic Concurrency Control (OCC)**:
-  * Guards against lost updates when multiple users edit the same lead simultaneously using Mongoose's internal versioning (`__v`).
-  * Yields `409 Conflict` errors with an in-app reload mechanism to review latest edits.
+  * **EMPLOYEE**: Strict horizontal isolation (only sees and updates leads assigned to them), cannot reassign leads, and must submit deletion requests for Admin approval.
 * **Lead Deletion Approval Workflow with Snapshots**:
   * Employees cannot directly delete leads. Deletion requests store immutable `leadName` and `leadCompany` snapshots so audit records remain readable even after the lead is permanently removed.
-* **Horizontal Data Isolation**:
-  * Row-level security enforced at the MongoDB query level (`assignedTo === req.user._id`), never in the frontend.
+* **Horizontal Data Isolation (Row-Level Security)**:
+  * Security enforced at the MongoDB query level (`assignedTo === req.user._id`), never in the frontend.
   * Prevents ID enumeration by returning `404 Not Found` (rather than `403 Forbidden`) when accessing unauthorized lead IDs.
+* **Executive Metrics & Pipeline Visualization**:
+  * Real-time dashboard KPI summaries (Total Leads, Active Pipeline, Win Rate %, Pending Reviews) and segmented status filtering.
 * **Modern Dark-Mode UI**:
-  * Built with pure CSS tokens, glassmorphism, responsive data tables, status badges, and 1-click Demo Quick-Login.
+  * Obsidian/Zinc design system, responsive data tables with avatar initials, dot status indicators, and an instant 1-click demo switcher.
 
 ---
 
@@ -30,7 +33,7 @@ A focused, high-integrity Lead Management CRM designed for small business sales 
 | **Styling** | Vanilla CSS Tokens & Glassmorphism | Custom dark theme, responsive components |
 | **Icons** | Lucide React | Clean, modern iconography |
 | **Backend** | Node.js + Express 5 + TypeScript | REST API with ES Modules |
-| **Database** | MongoDB + Mongoose ODM | Document store with indexing & OCC |
+| **Database** | MongoDB + Mongoose ODM | Document store with indexing & validation |
 | **Auth** | JWT (`jsonwebtoken`) + `bcrypt` | Stateless bearer token authentication |
 
 ---
@@ -44,7 +47,9 @@ The database comes pre-seeded with two accounts for instant testing:
 | **ADMIN** | `admin@minicrm.com` | `AdminPassword123!` | All leads, assignment, employee provisioning, approval queue |
 | **EMPLOYEE** | `employee@minicrm.com` | `EmployeePassword123!` | Assigned leads only, update status/notes, request deletion |
 
-> *Tip: The login screen contains 1-click **"Admin Demo"** and **"Employee Demo"** buttons to log in instantly without typing.*
+> *Tip: The login screen contains 1-click **"Admin"** and **"Employee"** session switcher buttons to log in instantly without typing.*
+>
+> 💡 **Customizing Seed Credentials**: You can customize the initial accounts before running the seed script by defining `INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD`, `INITIAL_EMPLOYEE_EMAIL`, and `INITIAL_EMPLOYEE_PASSWORD` in `server/.env` (or directly in `server/src/scripts/seedUsers.ts`).
 
 ---
 
@@ -70,14 +75,17 @@ npm install
 # MONGO_URI=mongodb://127.0.0.1:27017/mini_crm
 # JWT_SECRET=your_jwt_secret_key
 # CLIENT_URL=http://localhost:5173
+# (Optional) INITIAL_ADMIN_EMAIL=admin@minicrm.com
+# (Optional) INITIAL_ADMIN_PASSWORD=AdminPassword123!
 
-# (Optional) Seed the database with demo users:
+# Seed default Admin and Employee accounts (REQUIRED to sign in):
 npm run seed:users
 
 # Start backend dev server:
 npm run dev
 ```
 *Backend runs on `http://localhost:5000`.*
+> **Important**: Running `npm run seed:users` creates the default Admin and Employee credentials in MongoDB. You must run this command before logging in for the first time.
 
 ### 3. Configure Frontend (`/client`)
 ```bash
@@ -103,7 +111,7 @@ All protected endpoints require an `Authorization: Bearer <token>` header.
 * `GET /api/leads` — Fetch leads (Admins see all; Employees see assigned leads only).
 * `POST /api/leads` — Create a new lead *(Admin only)*.
 * `GET /api/leads/:id` — Fetch lead by ID (Returns 404 for unassigned employee access).
-* `PATCH /api/leads/:id` — Update lead (OCC checked via `__v`; Employees cannot reassign).
+* `PATCH /api/leads/:id` — Update lead details (Employees cannot reassign).
 * `DELETE /api/leads/:id` — Direct deletion of lead *(Admin only)*.
 
 ### Deletion Requests
@@ -115,22 +123,3 @@ All protected endpoints require an `Authorization: Bearer <token>` header.
 ### Employees
 * `GET /api/employees` — Fetch active employee roster *(Admin only)*.
 * `POST /api/employees` — Provision a new employee account *(Admin only)*.
-
----
-
-## 🛡️ Concurrency Control (OCC) Walkthrough
-
-1. User A and User B open the edit modal for Lead #101 (`__v: 0`).
-2. User A updates the status to `QUALIFIED` and saves. The database updates the document and increments `__v` to `1`.
-3. User B attempts to save notes using their stale form state (`__v: 0`).
-4. The server compares versions, intercepts the collision, and rejects the request with **HTTP `409 Conflict`**.
-5. The UI displays an alert: *"Concurrency Conflict (OCC): Another user modified this lead while you were editing it."*
-6. User B clicks **"Reload Latest Changes"** to fetch the updated lead without losing context.
-
----
-
-## 📚 Detailed Documentation
-
-For an in-depth breakdown of each architectural phase, code walk-throughs, and software engineering concepts:
-* [PROJECT_CONTEXT.md](file:///d:/Personal_projects/Mini-CRM/PROJECT_CONTEXT.md) — Architectural design, requirements, and RBAC matrix.
-* [PHASE_DOCUMENTATION.md](file:///d:/Personal_projects/Mini-CRM/PHASE_DOCUMENTATION.md) — Complete logs of Phases 1 through 8 with deep-dive technical explanations.

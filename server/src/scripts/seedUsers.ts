@@ -18,9 +18,9 @@ const defaultUsers: SeedUserData[] = [
     role: 'ADMIN',
   },
   {
-    name: 'Sales Employee',
-    email: 'employee@minicrm.com',
-    password: 'EmployeePassword123!',
+    name: process.env.INITIAL_EMPLOYEE_NAME || 'Sales Employee',
+    email: (process.env.INITIAL_EMPLOYEE_EMAIL || 'employee@minicrm.com').toLowerCase().trim(),
+    password: process.env.INITIAL_EMPLOYEE_PASSWORD || 'EmployeePassword123!',
     role: 'EMPLOYEE',
   },
 ];
