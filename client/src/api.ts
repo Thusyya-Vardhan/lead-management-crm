@@ -9,6 +9,8 @@ export interface ApiError extends Error {
   details?: unknown;
 }
 
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
 export const apiFetch = async <T = any>(
   endpoint: string,
   options: RequestInit = {}
@@ -24,7 +26,11 @@ export const apiFetch = async <T = any>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(endpoint, {
+  const url = endpoint.startsWith('http')
+    ? endpoint
+    : `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+
+  const response = await fetch(url, {
     ...options,
     headers,
   });
