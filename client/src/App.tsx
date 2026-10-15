@@ -5,7 +5,7 @@ import { LoginView } from './components/LoginView';
 import { LeadsView } from './components/LeadsView';
 import { DeletionRequestsView } from './components/DeletionRequestsView';
 import { EmployeesView } from './components/EmployeesView';
-import { Shield } from 'lucide-react';
+import { Layers } from 'lucide-react';
 
 const DashboardContent: React.FC = () => {
   const { user, loading } = useAuth();
@@ -21,14 +21,16 @@ const DashboardContent: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           background: 'var(--bg-main)',
-          color: 'var(--text-muted)',
+          color: 'var(--text-secondary)',
           gap: '1rem',
         }}
       >
-        <div className="brand-icon" style={{ padding: '1rem' }}>
-          <Shield size={36} />
+        <div className="brand-badge" style={{ width: '42px', height: '42px' }}>
+          <Layers size={22} />
         </div>
-        <p style={{ fontSize: '0.9rem', letterSpacing: '0.05em' }}>INITIALIZING MINI CRM SESSION...</p>
+        <p style={{ fontSize: '0.8rem', letterSpacing: '0.04em', color: 'var(--text-tertiary)' }}>
+          Connecting to CRM workspace...
+        </p>
       </div>
     );
   }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Users, FileText, UserCheck, LogOut, Shield, User as UserIcon } from 'lucide-react';
+import { Users, FileText, UserCheck, LogOut, Layers } from 'lucide-react';
 
 export type TabType = 'leads' | 'deletion-requests' | 'employees';
 
@@ -14,13 +14,25 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
 
   if (!user) return null;
 
+  const initials = user.name
+    ? user.name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : 'U';
+
   return (
     <header className="navbar">
       <div className="nav-brand">
-        <div className="brand-icon">
-          <Shield size={20} />
+        <div className="brand-badge">
+          <Layers size={17} />
         </div>
-        <span>Mini CRM</span>
+        <div className="brand-text">
+          <span>Mini CRM</span>
+          <span className="brand-version">v1.0</span>
+        </div>
       </div>
 
       <nav className="nav-tabs" aria-label="Main Navigation">
@@ -29,8 +41,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           className={`nav-tab ${activeTab === 'leads' ? 'active' : ''}`}
           onClick={() => setActiveTab('leads')}
         >
-          <Users size={16} />
-          <span>Leads</span>
+          <Users size={15} />
+          <span>Leads Pipeline</span>
         </button>
 
         <button
@@ -38,8 +50,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           className={`nav-tab ${activeTab === 'deletion-requests' ? 'active' : ''}`}
           onClick={() => setActiveTab('deletion-requests')}
         >
-          <FileText size={16} />
-          <span>Deletion Requests</span>
+          <FileText size={15} />
+          <span>Approval Queue</span>
         </button>
 
         {user.role === 'ADMIN' && (
@@ -48,16 +60,16 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
             className={`nav-tab ${activeTab === 'employees' ? 'active' : ''}`}
             onClick={() => setActiveTab('employees')}
           >
-            <UserCheck size={16} />
-            <span>Employees</span>
+            <UserCheck size={15} />
+            <span>Staff Directory</span>
           </button>
         )}
       </nav>
 
       <div className="nav-user">
         <div className="user-badge" id="current-user-info">
-          <UserIcon size={14} className="text-muted" />
-          <span>{user.name}</span>
+          <div className="user-avatar-sm">{initials}</div>
+          <span style={{ color: 'var(--text-primary)' }}>{user.name}</span>
           <span className={`role-tag ${user.role.toLowerCase()}`}>
             {user.role}
           </span>
@@ -65,12 +77,12 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
 
         <button
           id="logout-btn"
-          className="btn btn-secondary btn-sm"
+          className="btn btn-ghost btn-sm"
           onClick={logout}
           title="Sign out of your account"
         >
           <LogOut size={14} />
-          <span>Logout</span>
+          <span>Sign Out</span>
         </button>
       </div>
     </header>

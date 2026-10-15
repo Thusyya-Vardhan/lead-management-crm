@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import type { DeletionRequest } from '../types';
 import { apiFetch } from '../api';
 import {
-  CheckCircle,
-  XCircle,
-  Clock,
   RefreshCw,
-  User,
   Building,
   Check,
   X,
+  AlertTriangle,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  ShieldAlert,
 } from 'lucide-react';
 
 export const DeletionRequestsView: React.FC = () => {
@@ -48,7 +49,11 @@ export const DeletionRequestsView: React.FC = () => {
 
   // Admin Approve Request
   const handleApprove = async (id: string, leadCompany: string) => {
-    if (!window.confirm(`Approve deletion of lead for "${leadCompany}"? This will permanently delete the lead from the database.`)) {
+    if (
+      !window.confirm(
+        `Approve deletion for "${leadCompany}"? The lead will be permanently deleted from the database.`
+      )
+    ) {
       return;
     }
 
@@ -57,7 +62,7 @@ export const DeletionRequestsView: React.FC = () => {
       await apiFetch(`/api/deletion-requests/${id}/approve`, {
         method: 'POST',
       });
-      setActionSuccess(`Deletion request approved. Lead has been permanently removed.`);
+      setActionSuccess(`Request approved. Lead record permanently removed.`);
       setTimeout(() => setActionSuccess(null), 4000);
       fetchRequests();
     } catch (err: any) {
@@ -69,7 +74,11 @@ export const DeletionRequestsView: React.FC = () => {
 
   // Admin Reject Request
   const handleReject = async (id: string, leadCompany: string) => {
-    if (!window.confirm(`Reject deletion request for "${leadCompany}"? The lead will remain active in the system.`)) {
+    if (
+      !window.confirm(
+        `Reject deletion request for "${leadCompany}"? The lead will remain active in the pipeline.`
+      )
+    ) {
       return;
     }
 
@@ -78,7 +87,7 @@ export const DeletionRequestsView: React.FC = () => {
       await apiFetch(`/api/deletion-requests/${id}/reject`, {
         method: 'POST',
       });
-      setActionSuccess(`Deletion request rejected. Lead remains active in the pipeline.`);
+      setActionSuccess(`Request rejected. Lead remains active in pipeline.`);
       setTimeout(() => setActionSuccess(null), 4000);
       fetchRequests();
     } catch (err: any) {
@@ -86,6 +95,24 @@ export const DeletionRequestsView: React.FC = () => {
     } finally {
       setProcessingId(null);
     }
+  };
+
+  // KPI Metrics Calculations
+  const metrics = useMemo(() => {
+    const total = requests.length;
+    const pending = requests.filter((r) => r.status === 'PENDING').length;
+    const approved = requests.filter((r) => r.status === 'APPROVED').length;
+    const rejected = requests.filter((r) => r.status === 'REJECTED').length;
+    return { total, pending, approved, rejected };
+  }, [requests]);
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
@@ -98,71 +125,93 @@ export const DeletionRequestsView: React.FC = () => {
           </h1>
           <p className="page-subtitle">
             {user?.role === 'ADMIN'
-              ? 'Review, approve, or reject lead removal requests submitted by employees'
+              ? 'Review employee justifications and authorize permanent lead removals'
               : 'Track the review status of leads you marked for deletion'}
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
           <button
             id="refresh-requests-btn"
-            className="btn btn-secondary"
+            className="btn btn-secondary btn-sm"
             onClick={fetchRequests}
             disabled={loading}
           >
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             <span>Refresh</span>
           </button>
         </div>
       </div>
 
-      {/* Action Notification */}
+      {/* KPI Metrics */}
+      <div className="metrics-grid">
+        <div className="metric-card">
+          <div className="metric-label">
+            <span>Pending Review</span>
+            <Clock size={14} style={{ color: 'var(--amber-text)' }} />
+          </div>
+          <div className="metric-value">{metrics.pending}</div>
+          <div className="metric-subtext">
+            <span>Requires administrative action</span>
+          </div>
+        </div>
+
+        <div className="metric-card">
+          <div className="metric-label">
+            <span>Approved Removals</span>
+            <CheckCircle2 size={14} style={{ color: 'var(--emerald-text)' }} />
+          </div>
+          <div className="metric-value">{metrics.approved}</div>
+          <div className="metric-subtext">
+            <span>Leads permanently expunged</span>
+          </div>
+        </div>
+
+        <div className="metric-card">
+          <div className="metric-label">
+            <span>Rejected Tickets</span>
+            <XCircle size={14} style={{ color: 'var(--rose-text)' }} />
+          </div>
+          <div className="metric-value">{metrics.rejected}</div>
+          <div className="metric-subtext">
+            <span>Leads preserved in pipeline</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Notifications */}
       {actionSuccess && (
-        <div
-          className="alert"
-          style={{
-            background: 'rgba(16, 185, 129, 0.15)',
-            color: '#34d399',
-            border: '1px solid rgba(16, 185, 129, 0.3)',
-            marginBottom: '1.5rem',
-          }}
-        >
-          {actionSuccess}
+        <div className="alert alert-success">
+          <CheckCircle2 size={15} style={{ flexShrink: 0 }} />
+          <span>{actionSuccess}</span>
         </div>
       )}
 
       {error && (
-        <div className="alert alert-danger" style={{ marginBottom: '1.5rem' }}>
-          {error}
+        <div className="alert alert-danger">
+          <AlertTriangle size={15} style={{ flexShrink: 0 }} />
+          <span>{error}</span>
         </div>
       )}
 
-      {/* Filter Bar */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '1rem',
-          marginBottom: '1.5rem',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>
-            Filter by Status:
-          </span>
-          <select
-            id="request-status-filter"
-            className="form-control"
-            style={{ width: 'auto' }}
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="ALL">All Requests</option>
-            <option value="PENDING">Pending Review</option>
-            <option value="APPROVED">Approved</option>
-            <option value="REJECTED">Rejected</option>
-          </select>
+      {/* Segmented Filter Bar */}
+      <div className="toolbar-container">
+        <div className="segmented-filters" role="tablist">
+          {[
+            { key: 'ALL', label: 'All Requests' },
+            { key: 'PENDING', label: 'Pending Review' },
+            { key: 'APPROVED', label: 'Approved' },
+            { key: 'REJECTED', label: 'Rejected' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              className={`segmented-filter-btn ${statusFilter === tab.key ? 'active' : ''}`}
+              onClick={() => setStatusFilter(tab.key)}
+            >
+              <span>{tab.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -172,7 +221,7 @@ export const DeletionRequestsView: React.FC = () => {
           <table className="data-table" id="deletion-requests-table">
             <thead>
               <tr>
-                <th>Target Lead (Snapshot)</th>
+                <th>Target Lead (Historical Snapshot)</th>
                 <th>Company</th>
                 {user?.role === 'ADMIN' && <th>Requested By</th>}
                 <th>Reason Provided</th>
@@ -185,19 +234,24 @@ export const DeletionRequestsView: React.FC = () => {
               {loading && requests.length === 0 ? (
                 <tr>
                   <td colSpan={user?.role === 'ADMIN' ? 7 : 5} className="empty-state">
-                    <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 0.5rem' }} />
-                    <p>Loading deletion requests...</p>
+                    <div className="empty-state-icon">
+                      <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite' }} />
+                    </div>
+                    <p style={{ fontWeight: 500 }}>Loading review queue...</p>
                   </td>
                 </tr>
               ) : requests.length === 0 ? (
                 <tr>
                   <td colSpan={user?.role === 'ADMIN' ? 7 : 5} className="empty-state">
-                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>No deletion requests</p>
-                    <p style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                    <div className="empty-state-icon">
+                      <ShieldAlert size={20} />
+                    </div>
+                    <p style={{ fontWeight: 600, color: 'var(--text-primary)' }}>No deletion requests</p>
+                    <p style={{ fontSize: '0.8rem', marginTop: '0.25rem', color: 'var(--text-tertiary)' }}>
                       {statusFilter !== 'ALL'
-                        ? `No requests matching "${statusFilter}".`
+                        ? `No tickets currently match "${statusFilter}".`
                         : user?.role === 'ADMIN'
-                        ? 'There are currently no deletion requests waiting in the queue.'
+                        ? 'Queue clear! No employee removal requests awaiting review.'
                         : 'You have not submitted any deletion requests.'}
                     </p>
                   </td>
@@ -206,24 +260,46 @@ export const DeletionRequestsView: React.FC = () => {
                 requests.map((req) => (
                   <tr key={req._id} id={`deletion-row-${req._id}`}>
                     <td>
-                      <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{req.leadName}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
-                        ID: {req.leadId}
+                      <div className="lead-identity">
+                        <div className="avatar-circle">{getInitials(req.leadName)}</div>
+                        <div>
+                          <div className="lead-name">{req.leadName}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontFamily: 'monospace' }}>
+                            Ref: {req.leadId.slice(-6)}
+                          </div>
+                        </div>
                       </div>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <Building size={14} style={{ color: 'var(--text-dim)' }} />
-                        <span>{req.leadCompany}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)' }}>
+                        <Building size={13} style={{ color: 'var(--text-tertiary)' }} />
+                        <span style={{ fontWeight: 500 }}>{req.leadCompany}</span>
                       </div>
                     </td>
                     {user?.role === 'ADMIN' && (
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <User size={14} style={{ color: '#60a5fa' }} />
+                          <div
+                            style={{
+                              width: '18px',
+                              height: '18px',
+                              borderRadius: '50%',
+                              background: 'rgba(56, 189, 248, 0.15)',
+                              color: '#38bdf8',
+                              fontSize: '0.6rem',
+                              fontWeight: 700,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            {req.requestedBy?.name ? getInitials(req.requestedBy.name) : 'U'}
+                          </div>
                           <div>
-                            <div style={{ fontWeight: 500 }}>{req.requestedBy?.name || 'Unknown'}</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                            <div style={{ fontWeight: 500, fontSize: '0.8rem', color: 'var(--text-primary)' }}>
+                              {req.requestedBy?.name || 'Unknown'}
+                            </div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
                               {req.requestedBy?.email}
                             </div>
                           </div>
@@ -233,13 +309,13 @@ export const DeletionRequestsView: React.FC = () => {
                     <td>
                       <div
                         style={{
-                          maxWidth: '260px',
-                          fontSize: '0.85rem',
-                          color: 'var(--text-main)',
+                          maxWidth: '280px',
+                          fontSize: '0.8rem',
+                          color: 'var(--text-primary)',
                           background: 'var(--bg-input)',
-                          padding: '0.4rem 0.6rem',
+                          padding: '0.45rem 0.65rem',
                           borderRadius: 'var(--radius-sm)',
-                          border: '1px solid var(--border)',
+                          border: '1px solid var(--border-subtle)',
                         }}
                       >
                         {req.reason}
@@ -247,19 +323,17 @@ export const DeletionRequestsView: React.FC = () => {
                     </td>
                     <td>
                       <span className={`status-pill status-${req.status}`}>
-                        {req.status === 'PENDING' && <Clock size={12} />}
-                        {req.status === 'APPROVED' && <CheckCircle size={12} />}
-                        {req.status === 'REJECTED' && <XCircle size={12} />}
+                        <span className="status-dot" />
                         <span>{req.status}</span>
                       </span>
                     </td>
-                    <td style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                      {new Date(req.createdAt).toLocaleString()}
+                    <td style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontVariantNumeric: 'tabular-nums' }}>
+                      {new Date(req.createdAt).toLocaleDateString()}
                     </td>
                     {user?.role === 'ADMIN' && (
                       <td style={{ textAlign: 'right' }}>
                         {req.status === 'PENDING' ? (
-                          <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
+                          <div style={{ display: 'inline-flex', gap: '0.35rem' }}>
                             <button
                               id={`approve-request-${req._id}`}
                               className="btn btn-success btn-sm"
@@ -267,7 +341,7 @@ export const DeletionRequestsView: React.FC = () => {
                               disabled={processingId === req._id}
                               title="Approve Deletion and Remove Lead"
                             >
-                              <Check size={14} />
+                              <Check size={12} />
                               <span>Approve</span>
                             </button>
                             <button
@@ -277,12 +351,12 @@ export const DeletionRequestsView: React.FC = () => {
                               disabled={processingId === req._id}
                               title="Reject Request (Keep Lead)"
                             >
-                              <X size={14} />
+                              <X size={12} />
                               <span>Reject</span>
                             </button>
                           </div>
                         ) : (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
                             Resolved
                           </span>
                         )}
