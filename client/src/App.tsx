@@ -1,51 +1,58 @@
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { Navbar, type TabType } from './components/Navbar';
+import { LoginView } from './components/LoginView';
+import { LeadsView } from './components/LeadsView';
+import { DeletionRequestsView } from './components/DeletionRequestsView';
+import { EmployeesView } from './components/EmployeesView';
+import { Shield } from 'lucide-react';
 
-interface HealthResponse {
-  status: string;
-  db: string;
-  timestamp: string;
-}
+const DashboardContent: React.FC = () => {
+  const { user, loading } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabType>('leads');
 
-function App() {
-  const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--bg-main)',
+          color: 'var(--text-muted)',
+          gap: '1rem',
+        }}
+      >
+        <div className="brand-icon" style={{ padding: '1rem' }}>
+          <Shield size={36} />
+        </div>
+        <p style={{ fontSize: '0.9rem', letterSpacing: '0.05em' }}>INITIALIZING MINI CRM SESSION...</p>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    fetch('/api/health')
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data: HealthResponse) => {
-        setHealth(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+  if (!user) {
+    return <LoginView />;
+  }
 
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>Mini CRM</h1>
-      <p>Phase 1: Foundation Verification</p>
-
-      <div style={{ padding: '1rem', border: '1px solid #ccc', borderRadius: '8px', marginTop: '1rem' }}>
-        <h3>Backend Health Check</h3>
-        {loading && <p>Checking backend connection...</p>}
-        {error && <p style={{ color: 'red' }}>❌ Error connecting to server: {error}</p>}
-        {health && (
-          <div>
-            <p><strong>Server Status:</strong> {health.status === 'ok' ? '✅ Online' : '⚠️ Warning'}</p>
-            <p><strong>MongoDB:</strong> {health.db === 'connected' ? '✅ Connected' : '❌ Disconnected'}</p>
-            <p><small>Checked at: {new Date(health.timestamp).toLocaleTimeString()}</small></p>
-          </div>
-        )}
-      </div>
+    <div className="app-container">
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <main>
+        {activeTab === 'leads' && <LeadsView />}
+        {activeTab === 'deletion-requests' && <DeletionRequestsView />}
+        {activeTab === 'employees' && user.role === 'ADMIN' && <EmployeesView />}
+      </main>
     </div>
   );
-}
+};
 
-export default App;
+export default function App() {
+  return (
+    <AuthProvider>
+      <DashboardContent />
+    </AuthProvider>
+  );
+}
