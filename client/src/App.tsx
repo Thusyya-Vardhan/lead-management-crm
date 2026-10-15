@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ServerHealthGate } from './components/ServerHealthGate';
 import { Navbar, type TabType } from './components/Navbar';
 import { LoginView } from './components/LoginView';
 import { LeadsView } from './components/LeadsView';
@@ -29,7 +30,7 @@ const DashboardContent: React.FC = () => {
           <Layers size={22} />
         </div>
         <p style={{ fontSize: '0.8rem', letterSpacing: '0.04em', color: 'var(--text-tertiary)' }}>
-          Connecting to CRM workspace...
+          Restoring session...
         </p>
       </div>
     );
@@ -53,8 +54,10 @@ const DashboardContent: React.FC = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <DashboardContent />
-    </AuthProvider>
+    <ServerHealthGate>
+      <AuthProvider>
+        <DashboardContent />
+      </AuthProvider>
+    </ServerHealthGate>
   );
 }

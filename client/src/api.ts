@@ -48,3 +48,13 @@ export const apiFetch = async <T = any>(
 
   return data;
 };
+
+export interface HealthStatus {
+  status: string;
+  db: string;
+  timestamp?: string;
+}
+
+export const checkServerHealth = async (): Promise<HealthStatus> => {
+  return apiFetch<HealthStatus>('/api/health');
+};

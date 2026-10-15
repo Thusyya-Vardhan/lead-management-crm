@@ -45,7 +45,7 @@ export const LoginView: React.FC = () => {
           <div className="brand-badge" style={{ margin: '0 auto', width: '38px', height: '38px' }}>
             <Layers size={22} />
           </div>
-          <h2>Mini CRM</h2>
+          <h2 style={{ fontSize: '1.35rem' }}>Sales Lead Management CRM</h2>
           <p>Sign in to access your sales workspace</p>
         </div>
 
