@@ -9,8 +9,21 @@ import employeeRoutes from "./routes/employeeRoutes.js";
 
 const app = express();
 
+const configuredOrigin = process.env.CLIENT_URL?.replace(/\/$/, '');
+
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (
+            origin === 'http://localhost:5173' ||
+            origin === 'http://localhost:3000' ||
+            (configuredOrigin && origin === configuredOrigin) ||
+            origin.endsWith('.vercel.app')
+        ) {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
     credentials: true,
 }));
 
