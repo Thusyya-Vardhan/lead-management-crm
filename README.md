@@ -1,6 +1,6 @@
-# Sales Lead Management Dashboard
+# Lead Management Dashboard
 
-A focused, high-integrity sales lead tracking and pipeline management dashboard built with a decoupled **React (Vite + TypeScript)** frontend and **Node.js / Express (TypeScript)** backend backed by **MongoDB (Mongoose ODM)**.
+A focused, high-integrity lead tracking and pipeline management dashboard built with a decoupled **React (Vite + TypeScript)** frontend and **Node.js / Express (TypeScript)** backend backed by **MongoDB (Mongoose ODM)**.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://lead-management-crm-rose.vercel.app/)
 

@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           <Layers size={17} />
         </div>
         <div className="brand-text">
-          <span>Sales Lead Management Dashboard</span>
+          <span>Lead Management Dashboard</span>
           <span className="brand-version">v1.0</span>
         </div>
       </div>
