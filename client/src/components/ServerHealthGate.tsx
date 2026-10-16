@@ -81,7 +81,7 @@ export const ServerHealthGate: React.FC<ServerHealthGateProps> = ({ children }) 
         </div>
 
         <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', letterSpacing: '-0.025em' }}>
-          Sales Lead Management CRM
+          Sales Lead Management Dashboard
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.35rem' }}>
           Connecting to cloud backend infrastructure
